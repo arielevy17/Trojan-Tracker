@@ -83,7 +83,9 @@ public class BinText extends AutomaticTools {
         this.isSuspiciousOrders = false;
         this.isStrongEncoded = false;
         this.isEncoded = false;
+
         // הוספת הפקודות המוגדרות כחשודות
+
         this.suspiciousOrders.add("CreateProcess");
         this.suspiciousOrders.add("TerminateProcess");
         this.suspiciousOrders.add("Kernel32.dll");
@@ -182,6 +184,9 @@ public class BinText extends AutomaticTools {
                         if (line.contains(suspiciousOrders.get(i))) {
                             thereIsSuspiciousOrder = true;
                             this.descriptionOrder = "There is a suspicious order in your file! \n";
+
+                            // עידכון הממצאים בהתאם לסוג הפקודה
+                            
                             switch (suspiciousOrders.get(i)) {
                                 case "CreateProcess" :
                                     this.descriptionOrder += " - A command that runs files from the operating system was detected in the file. This action is not common." + "\n Please examine the file you have. Does this command match the file you have? \n";

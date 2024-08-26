@@ -24,10 +24,10 @@ public class GraphicInterface extends JFrame {
     private String openingParagraphToFindingsReport; // פיסקת פתיחה לדוח הממצאים
     private String finishingParagraphToFindingsReport; // פיסקת סיום לדוח הממצאים
     private String findingsReportContents;  // תוכן דוח הממצאים
-    Font font;
+    Font font; // עיצוב טקסט דוח הממצאים
     private int malwarePresent ; // האחוזים לקובץ נגוע לאחר שכלול כלל הפרמטרים
     private String arrivalWay; // דרך הגעת הקובץ למשתמש
-    private String arrivalWayDescription;
+    private String arrivalWayDescription; // דרך הגעת הקובץ למשתמש
     private boolean encoded; // האם הקובץ מוצפן
 
 
@@ -117,15 +117,13 @@ public class GraphicInterface extends JFrame {
 
                     // איתור מידע אודות זהותו באנטי וירוסים אחרים -> Virus Total
                     VirusTotal virusTotal = new VirusTotal(this.filePath);
-                    virusTotal.startProgram();
-
-                    // לפעמים התוכנית מחזירה בפעם הראשונה ממצאים של קובץ ריק
-                try {
+                try { // זמן לטעינת הקובץ טרם שליחת בקשת הAPI
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
                 virusTotal.startProgram();
+
 
 
  // ---------------------------------------------------------------------------------------------
@@ -183,7 +181,7 @@ public class GraphicInterface extends JFrame {
                             malwarePresent += virusTotal.getPresent();
 
                                     {
-                                // TODO: עידכון תוכן דוח הממצאים בשאר ממצאי התוכניות
+                                // TODO: הרחבה עתידית* - עידכון תוכן דוח הממצאים בשאר ממצאי התוכניות*
                             }
 
                             // הוספת ההסתברות הכוללת לנוזקה (באחוזים) + פסקת סיום לדוח הממצאים
@@ -217,13 +215,12 @@ public class GraphicInterface extends JFrame {
                                 } else {
                                     System.out.println("Desktop feature is not supported on this system.");
                                 }
-
+                                // טיפול בשגיאות אם ישנן
                             } catch (Exception ex) {
                                 JOptionPane.showMessageDialog(null, "Error saving report: " + ex.getMessage());
                             }
 
                         } catch (Exception e) {
-                            // טיפול בשגיאות אם ישנן
                             e.printStackTrace();
                             JOptionPane.showMessageDialog(null, "An error occurred during the analysis: " + e.getMessage());
                         }
@@ -234,7 +231,7 @@ public class GraphicInterface extends JFrame {
 
 
                 {
-                    // TODO: פונקציות הריצה של כל שאר התוכניות
+                    // TODO: הרחבה עתידית* - פונקציות הריצה של כל שאר התוכניות*
                 }
 
             }
@@ -250,8 +247,8 @@ public class GraphicInterface extends JFrame {
         backgroundPanel.add(runButton);
 
         // הוראות סימון צ'ק בוקס
-        // TODO: לסדר אמצע אולי עם שני לייבאלים שונים
-         JTextArea checkBoxDescription = new JTextArea ("Please mark how the file got to your computer "+"\n(this information may make the analysis of the file more than 60% more accurate)");
+
+         JTextArea checkBoxDescription = new JTextArea ("         Please mark how the file got to your computer "+"\n(this information may make the analysis of the file more than 60% more accurate)");
         checkBoxDescription.setBounds(250,220,800,40);
         checkBoxDescription.setFont(font);
         checkBoxDescription.setOpaque(false);
@@ -259,6 +256,7 @@ public class GraphicInterface extends JFrame {
         backgroundPanel.add(checkBoxDescription);
 
         // הוספה ועיצוב צ'קבוקסים
+
         JCheckBox option1 = new JCheckBox("From a known website");
         option1.setBounds(CHECK_BOX_FIRST_LINE_X, CHECK_BOX_FIRST_LINE_Y, 200, 30);
         option1.setOpaque(false);
@@ -342,6 +340,7 @@ public class GraphicInterface extends JFrame {
         option12.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         //  וידוא שניתן יהיה לבחור אפשרות אחת בלבד
+
         ButtonGroup group = new ButtonGroup();
         group.add(option1);
         group.add(option2);
@@ -357,6 +356,7 @@ public class GraphicInterface extends JFrame {
         group.add(option12);
 
         // הוספת הצ'ק בוקסים לפאנל
+
         backgroundPanel.add(option1);
         backgroundPanel.add(option2);
         backgroundPanel.add(option3);
@@ -383,7 +383,7 @@ public class GraphicInterface extends JFrame {
         }
     };
 
-        // שמירת ערך הצ'ק בוקס (דרך הגעת הקובץ למשתמש)
+        // עידכון הערך האחוזית לנוזקה ע"פ דרך הגעת הקובץ(הסימון בצ'ק בוקס)
         ActionListener boxChecked = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

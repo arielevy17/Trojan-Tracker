@@ -31,13 +31,13 @@ public class VirusTotal extends AutomaticTools {
     private String antiVirusPositiveAns; // מספר מנועי האנטי וירוס שזיהו את הקובץ כוירוס
     private String sumOfAntiVirus; // מספר מנועי האנטי וירוס שאינם זיהו את הקובץ כוירוס
     private String description; // תיאור ממצאים
-    private File file;
-    private final String API_KEY = "8e14d9c052dbb2045564ff002a3843f6fac3bbe4d16a98c18dc79636ec147cea";
-    private String fileHash;
-    private String fileReport;
-    private JSONObject jsonResponse;
-    private int totalAntiViruses;
-    private int present;
+    private File file; // הקובץ הנבדק
+    private final String API_KEY = "8e14d9c052dbb2045564ff002a3843f6fac3bbe4d16a98c18dc79636ec147cea"; // מפתח הAPI
+    private String fileHash; // המזהה שאתר וירוס טוטל נותן לקובץ
+    private String fileReport; // משתנה עזר - דוח הממצאים שמתקבל מהאתר
+    private JSONObject jsonResponse; // דוח הממצאים שמתקבל מהאתר - בתצורת JSON
+    private int totalAntiViruses; // כמות האנטי וירוס שהקובץ נבדק מולם
+    private int present; // אחוזי המצאות נוזקה בקובץ ע"פ ממצאי וירוס טוטל בלבד
 
     // מערך שמות הקטגוריות של הנוזקות
     private static final String[] malwareCategories = {
@@ -65,6 +65,7 @@ public class VirusTotal extends AutomaticTools {
     jsonResponse = null;
     this.file = new File(filePath);
 
+        // הוספה למפה את שם הנוזקה ופעולה
         categoryDescriptions.put("Trojan", "Malicious program that pretends to be legitimate software.");
         categoryDescriptions.put("Worm", "Self-replicating malware that spreads across networks.");
         categoryDescriptions.put("Virus", "Malware that attaches itself to legitimate programs and spreads.");
@@ -310,10 +311,6 @@ public class VirusTotal extends AutomaticTools {
 
     // GET
 
-
-    public int getTotalAntiViruses() {
-        return totalAntiViruses;
-    }
 
     public String getDescription() {
         return description;
