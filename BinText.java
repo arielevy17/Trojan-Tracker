@@ -195,6 +195,7 @@ public class BinText extends AutomaticTools {
                             switch (suspiciousOrders.get(i)) {
                                 case "CreateProcess" :
                                     this.descriptionOrder += " - A command that runs files from the operating system was detected in the file. This action is not common." + "\n Please examine the file you have. Does this command match the file you have? \n";
+                                    this.present += 8;
                                     break;
                                 case "Kernel32.dll":
                                     this.descriptionOrder += " - A suspicious command was detected in the file. The command attempts to access the operating system \n";
