@@ -101,8 +101,11 @@ public class VirusTotal extends AutomaticTools {
         categoryDescriptions.put("Trojan-RAT", "Remote Access Trojan for unauthorized control.");
         categoryDescriptions.put("Trojan-Crypt", "Trojan that encrypts files.");
         categoryDescriptions.put("Trojan-FakeAV", "Fake antivirus Trojan.");
-
-    this.startProgram();
+    try {
+        this.startProgram();
+    } catch (Exception virusTotalEx){
+        System.out.println("There is a problem with virus total Program");
+    }
     }
 
     // פונקציות

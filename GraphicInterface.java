@@ -107,12 +107,13 @@ public class GraphicInterface extends JFrame {
                                 + SPACE_BETWEEN_PARAGRAPHS + "\n";
                 findingsReportContents = openingParagraphToFindingsReport;
 
+
                   // Bin Text <- איתור פקודות חשודות
                     BinText binText = new BinText(filePath, filesStorageDestination, suspiciousOrders);
 
-                    if (binText.isSuspiciousOrders()) { // אם קיימות פקודות חשודות
-                        malwarePresent += 10;
-                    }
+                     // אם קיימות פקודות חשודות
+                        malwarePresent += binText.getPresent();
+
 
 
                     // איתור מידע אודות זהותו באנטי וירוסים אחרים -> Virus Total
@@ -184,6 +185,11 @@ public class GraphicInterface extends JFrame {
                                 // TODO: הרחבה עתידית* - עידכון תוכן דוח הממצאים בשאר ממצאי התוכניות*
                             }
 
+                            // נירמול/ולידציה לאחוזי המצאות נוזקה בקובץ
+                            if (malwarePresent >= 95){
+                                malwarePresent = 95;
+                            }
+
                             // הוספת ההסתברות הכוללת לנוזקה (באחוזים) + פסקת סיום לדוח הממצאים
                             finishingParagraphToFindingsReport =
                                     "\n\n" +
@@ -215,6 +221,8 @@ public class GraphicInterface extends JFrame {
                                 } else {
                                     System.out.println("Desktop feature is not supported on this system.");
                                 }
+
+
                                 // טיפול בשגיאות אם ישנן
                             } catch (Exception ex) {
                                 JOptionPane.showMessageDialog(null, "Error saving report: " + ex.getMessage());
@@ -228,7 +236,7 @@ public class GraphicInterface extends JFrame {
                 };
 
                 worker.execute(); // SwingWorker -הפעלת ה
-
+//
 
                 {
                     // TODO: הרחבה עתידית* - פונקציות הריצה של כל שאר התוכניות*
