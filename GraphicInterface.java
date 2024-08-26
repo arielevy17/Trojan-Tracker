@@ -6,6 +6,12 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.awt.Desktop;
 import java.io.IOException;
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfWriter;
+
+import java.io.FileOutputStream;
 
 
 public class GraphicInterface extends JFrame {
@@ -29,6 +35,7 @@ public class GraphicInterface extends JFrame {
     private String arrivalWay; // דרך הגעת הקובץ למשתמש
     private String arrivalWayDescription; // דרך הגעת הקובץ למשתמש
     private boolean encoded; // האם הקובץ מוצפן
+
 
 
     // Constructor
@@ -100,6 +107,27 @@ public class GraphicInterface extends JFrame {
         runButton.setBounds(520, 180, 150, 30);
         runButton.addActionListener((event) -> {
             if (filePath != null && filesStorageDestination != null) {
+
+                // יצירת חלון מודאלי שלא ניתן לסגור
+                JDialog dialog = new JDialog();
+                dialog.setTitle("Waiting...");
+                dialog.setModal(true);  // הופך את החלון למודאלי
+                dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // מניעת סגירת החלון
+                dialog.setSize(300, 150);
+                dialog.setLocationRelativeTo(null);
+                dialog.setLayout(new BorderLayout());
+
+                // הודעת המתנה לסיום סריקת הקובץ ע"י התוכנית
+                JLabel messageLabel = new JLabel("The program is scanning your file, please wait...", SwingConstants.CENTER);
+                dialog.add(messageLabel, BorderLayout.CENTER);
+                new Thread(() -> {
+                    try {
+                        dialog.setVisible(true);
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }).start();
+
                 // הגדרת פסקת הפתיחה לדוח הממצאים
                 openingParagraphToFindingsReport =
                         "Welcome to Trojan Tracker engine.\n\n"+
@@ -119,7 +147,7 @@ public class GraphicInterface extends JFrame {
                     // איתור מידע אודות זהותו באנטי וירוסים אחרים -> Virus Total
                     VirusTotal virusTotal = new VirusTotal(this.filePath);
                 try { // זמן לטעינת הקובץ טרם שליחת בקשת הAPI
-                    Thread.sleep(3000);
+                    Thread.sleep(7500);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -158,8 +186,6 @@ public class GraphicInterface extends JFrame {
                             // המתנה לסיום ריצת התוכנית PiED
                             get();
 
-                            // הצגת הודעה למשתמש שפעולת PiED הושלמה
-                            JOptionPane.showMessageDialog(null, "The analysis with PiED has been completed.");
 
                             //  מציאת הצפנות באמצעות BinText (תווים מיוחדים שאינם מופיעים לרוב)
                             // שים לב אם נמצאה הצפנת UPS לא תתבצע בדיקת הצפנה חוזרת בBimText
@@ -205,28 +231,26 @@ public class GraphicInterface extends JFrame {
                             findingsReportContents += finishingParagraphToFindingsReport;
 
                             // כעת מבצעים את כתיבת הדוח לאחר ש-findingReportContents עודכן במלואו
+
+                            Document reportFile = new Document();
                             try {
-                                File reportFile = new File(filesStorageDestination, "findings_report.txt");
-                                java.nio.file.Files.write(reportFile.toPath(), findingsReportContents.getBytes());
-                                JOptionPane.showMessageDialog(null, "Process completed successfully.\n Report saved to: " + reportFile.getAbsolutePath());
+                                // יצירת קובץ ה-PDF
+                                PdfWriter.getInstance(reportFile, new FileOutputStream(filesStorageDestination+"Findings_report.pdf"));
+                                reportFile.open();
+                                reportFile.add(new Paragraph(findingsReportContents));
+                            } catch (DocumentException | IOException e) {
+                                e.printStackTrace();
+                            } finally {
+                                reportFile.close();
 
-                                //  פתיחת דוח הממצאים למשתמש סיום התוכנית
-                                if (Desktop.isDesktopSupported()) {
-                                    Desktop desktop = Desktop.getDesktop();
-                                    try {
-                                        desktop.open(reportFile);
-                                    } catch (IOException e) {
-                                        System.out.println("Error opening file: " + e.getMessage());
-                                    }
-                                } else {
-                                    System.out.println("Desktop feature is not supported on this system.");
-                                }
-
-
-                                // טיפול בשגיאות אם ישנן
-                            } catch (Exception ex) {
-                                JOptionPane.showMessageDialog(null, "Error saving report: " + ex.getMessage());
+                                // הודעה למשתמש על סיום ריצת התוכנית
+                                dialog.dispose();
+                                JOptionPane.showMessageDialog(null, "Process completed successfully.\n Report saved to: " + filesStorageDestination+"Findings_report.pdf");
                             }
+                            // פתיחת דוח הממצאים למשתמש עם סיום התוכנית
+
+                            openPDF(filesStorageDestination+"Findings_report.pdf");
+
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -256,7 +280,7 @@ public class GraphicInterface extends JFrame {
 
         // הוראות סימון צ'ק בוקס
 
-         JTextArea checkBoxDescription = new JTextArea ("         Please mark how the file got to your computer "+"\n(this information may make the analysis of the file more than 60% more accurate)");
+         JTextArea checkBoxDescription = new JTextArea ("                                     Please mark how the file got to your computer "+"\n(this information may make the analysis of the file more than 60% more accurate)");
         checkBoxDescription.setBounds(250,220,800,40);
         checkBoxDescription.setFont(font);
         checkBoxDescription.setOpaque(false);
@@ -456,6 +480,25 @@ public class GraphicInterface extends JFrame {
                 }
             }
     };
+
+     // פונקציות:
+    // פתיחת דוח הממצאים
+    public void openPDF(String filePath) {
+         try {
+             File pdfFile = new File(filePath);
+             if (pdfFile.exists()) {
+                 if (Desktop.isDesktopSupported()) {
+                     Desktop.getDesktop().open(pdfFile);
+                 } else {
+                     System.out.println("Desktop is not supported on this system.");
+                 }
+             } else {
+                 System.out.println("The file does not exist.");
+             }
+         } catch (IOException e) {
+             e.printStackTrace();
+         }
+     }
 
     // Get || Set
     public ArrayList<String> getSuspiciousOrders() {

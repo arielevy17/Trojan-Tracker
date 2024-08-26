@@ -194,103 +194,103 @@ public class BinText extends AutomaticTools {
 
                             switch (suspiciousOrders.get(i)) {
                                 case "CreateProcess" :
-                                    this.descriptionOrder += " - A command that runs files from the operating system was detected in the file. This action is not common." + "\n Please examine the file you have. Does this command match the file you have? \n";
+                                    this.descriptionOrder += " - There is a command that runs files from the operating system was detected in the file. This action is not common." + "\n Please examine the file you have. Does this command match the file you have? \n";
                                     this.present += 8;
-                                    break;
+
                                 case "Kernel32.dll":
-                                    this.descriptionOrder += " - A suspicious command was detected in the file. The command attempts to access the operating system \n";
+                                    this.descriptionOrder += " - There is a suspicious command was detected in the file. The command attempts to access the operating system \n";
                                     this.present += 10;
-                                    break;
+
                                 case "C:\\Windows\\System32\\Kernel32.dll":
-                                    this.descriptionOrder += " - A suspicious command was detected in the file. someone try to access the operating system from Administrator mode. That means there is an attempt by the program to raise access privileges to your system! \n";
+                                    this.descriptionOrder += " - There is a suspicious command was detected in the file. someone try to access the operating system from Administrator mode. That means there is an attempt by the program to raise access privileges to your system! \n";
                                     this.present += 20;
-                                    break;
+
                                 case "VirtualProtect" :
                                 case "NtAllocateVirtualMemory" :
                                 case "VirtualAlloc" :
-                                    this.descriptionOrder += " - This command is used to allocate memory in the system and to set read, write, and run permissions for the allocated memory.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to allocate memory in the system and to set read, write, and run permissions for the allocated memory.\n" +
                                             "  Malicious actors may use this type of memory allocation to load malicious code into memory and run it directly from memory (a process known as \"DLL Injection\" or \"Code Injection\").";
                                     this.present += 20;
-                                    break;
+
                                 case "GetSystemInfo" :
                                 case "GetUserName" :
                                 case "GetComputerName" :
-                                    this.descriptionOrder += " - This command is used to collect information about the computer name, user name and system properties.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to collect information about the computer name, user name and system properties.\n" +
                                             " Malware may check the computer or user name to identify whether they are running in a lab environment or virtual machine used for malware analysis.";
                                     this.present += 5;
-                                    break;
+
                                 case "GlobalMemoryStatusEx" :
-                                    this.descriptionOrder += " - This command is used to obtain information about the amount of memory in the system and the characteristics of the processor.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to obtain information about the amount of memory in the system and the characteristics of the processor.\n" +
                                             " Malicious agents use these functions to check whether they are running in an environment with limited resources,\n a feature that characterizes virtual machines or analysis environments.";
                                     this.present += 5;
-                                    break;
+
                                 case "TerminateProcess" :
-                                    this.descriptionOrder += " - Processes that crash unexpectedly may indicate that the attacker is trying to take over them or cause them to perform malicious actions.";
+                                    this.descriptionOrder += " - There is a suspicious command crash Processes in your file. that crash unexpectedly may indicate that the attacker is trying to take over them or cause them to perform malicious actions.";
                                     this.present += 15;
-                                    break;
+
                                 case "GetDC" :
                                 case "GetDeviceCaps" :
                                 case "BitBlt" :
                                 case "GetPixel" :
-                                    this.descriptionOrder += " - This command is used to get data about the screen display and its pixels.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to get data about the screen display and its pixels.\n" +
                                             "Vulnerable users use the screen test to identify if they are running in an analysis environment,\n such as a sandbox, that does not change the screen very often.";
                                     this.present += 5;
-                                    break;
+
                                 case "Sleep" :
                                 case "GetTickCount" :
                                 case "RDTSC" :
                                 case "NtDelayExecution" :
-                                    this.descriptionOrder += " - This command is used to delay the running of the damaged.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to delay the running of the damaged.\n" +
                                             "Victims use these delays to evade detection during sandbox tests, which tend to run for a short time.";
                                     this.present += 10;
-                                    break;
+
                                 case "CPUID" :
                                 case "Rdtsc" :
-                                    this.descriptionOrder += " - This command is used to read information about the processor and physical memory.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to read information about the processor and physical memory.\n" +
                                             "Malware may use these tests to detect whether they are running on a VM,\n based on CPU and memory characteristics.";
                                     this.present += 5;
-                                    break;
+
                                 case "CreateFile" :
                                 case "WriteFile" :
                                 case "ShellExecute" :
                                 case "WinExec" :
-                                    this.descriptionOrder += " - This command is used to create new files in the system and activate them.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to create new files in the system and activate them.\n" +
                                             "Malware creates executable files to run additional malicious code or replicate themselves on the system.";
                                     this.present += 5;
-                                    break;
+
                                 case "FILE_ATTRIBUTE_HIDDEN" :
-                                    this.descriptionOrder += " - This command is used to create files with hidden property.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to create files with hidden property.\n" +
                                             "Malware uses hidden files to hide their activity from the user and the antivirus.";
                                     this.present += 15;
-                                    break;
+
                                 case "CreateLink" :
                                 case "IShellLink" :
-                                    this.descriptionOrder += " - This command is used to create shortcuts on the desktop or in other locations.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to create shortcuts on the desktop or in other locations.\n" +
                                             "Malware uses shortcuts to launch themselves or redirect users to malicious files.";
                                     this.present += 5;
-                                    break;
+
                                 case "EnumProcesses" :
                                 case "GetModuleFileName" :
                                 case "QueryFullProcessImageName" :
                                 case "WMI" :
-                                    this.descriptionOrder += " - This command is used to collect information about the processes and applications running in the system.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to collect information about the processes and applications running in the system.\n" +
                                             "Harmful users may check the list of applications to discover antivirus or other tools that may threaten their activity.";
                                     this.present += 10;
-                                    break;
+
                                 case "SetWindowsHookEx" :
                                 case "GetAsyncKeyState" :
                                 case "GetKeyState" :
-                                    this.descriptionOrder += " - This command is used to track keystrokes.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to track keystrokes.\n" +
                                             "Hackers use keyboard hooks to steal passwords, credit card information, and other personal information.";
                                     this.present += 35;
-                                    break;
+
                                 case "CryptEncrypt" :
                                 case "MoveFile" :
                                 case "CopyFile" :
-                                    this.descriptionOrder += " - This command is used to encrypt files or move them to another location.\n" +
+                                    this.descriptionOrder += " - There is a suspicious command used to encrypt files or move them to another location.\n" +
                                             "Ransomware uses these commands to encrypt the victim's files and demand a ransom in exchange for their release.";
                                     this.present += 90;
-                                    break;
+
                             }
                             System.out.println("\n there is a suspicious order in your file");
                             System.out.println(this.descriptionOrder);
