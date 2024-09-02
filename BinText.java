@@ -3,6 +3,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 
 //   הרצת תוכנת binText לאיתור פקודות חשודות
@@ -179,133 +181,143 @@ public class BinText extends AutomaticTools {
 
     // בדיקת מערך הפקודות החשודות אל מול קובץ הפקודות שנשמר
     public boolean searchSuspiciousOrders() {
-            boolean thereIsSuspiciousOrder = false;
-        this.descriptionOrder = "- We didnt find any suspicious order in your file\n" ;
-            for (int i=0; i<suspiciousOrders.size(); i++) {
-                try (BufferedReader reader = new BufferedReader(new FileReader(orderFailPath))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        System.out.println(line);
-                        if (line.contains(suspiciousOrders.get(i))) {
-                            thereIsSuspiciousOrder = true;
-                            this.descriptionOrder = "There is a suspicious order in your file! \n";
+        boolean thereIsSuspiciousOrder = false;
+        StringBuilder descriptionBuilder = new StringBuilder();
+        descriptionBuilder.append("- We didn't find any suspicious orders in your file\n");
 
-                            // עידכון הממצאים בהתאם לסוג הפקודה
+        // מניעת פירוט כפול של פקודות חשודות (גם אם קיימות כמה בקובץ)
+        Set<String> detectedCommands = new HashSet<>();
 
-                            switch (suspiciousOrders.get(i)) {
-                                case "CreateProcess" :
-                                    this.descriptionOrder += " - There is a command that runs files from the operating system was detected in the file. This action is not common." + "\n Please examine the file you have. Does this command match the file you have? \n";
-                                    this.present += 8;
+        try (BufferedReader reader = new BufferedReader(new FileReader(orderFailPath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                for (int i = 0; i < suspiciousOrders.size(); i++) {
+                    String command = suspiciousOrders.get(i);
 
-                                case "Kernel32.dll":
-                                    this.descriptionOrder += " - There is a suspicious command was detected in the file. The command attempts to access the operating system \n";
-                                    this.present += 10;
+                    if (line.contains(command) && !detectedCommands.contains(command)) {
+                        detectedCommands.add(command);
+                        thereIsSuspiciousOrder = true;
 
-                                case "C:\\Windows\\System32\\Kernel32.dll":
-                                    this.descriptionOrder += " - There is a suspicious command was detected in the file. someone try to access the operating system from Administrator mode. That means there is an attempt by the program to raise access privileges to your system! \n";
-                                    this.present += 20;
+                        switch (command) {
+                            case "CreateProcess" :
 
-                                case "VirtualProtect" :
-                                case "NtAllocateVirtualMemory" :
-                                case "VirtualAlloc" :
-                                    this.descriptionOrder += " - There is a suspicious command used to allocate memory in the system and to set read, write, and run permissions for the allocated memory.\n" +
-                                            "  Malicious actors may use this type of memory allocation to load malicious code into memory and run it directly from memory (a process known as \"DLL Injection\" or \"Code Injection\").";
-                                    this.present += 20;
+                                // מעבר ושמירה של כלל הפקודות שנמצאו ולא רק העדכנית ביותר
+                                descriptionBuilder.append(" - The command: ").append(command).append(" runs files from the operating system was detected in the file. This action is not common.\n Please examine the file you have. Does this command match the file you have?\n");
 
-                                case "GetSystemInfo" :
-                                case "GetUserName" :
-                                case "GetComputerName" :
-                                    this.descriptionOrder += " - There is a suspicious command used to collect information about the computer name, user name and system properties.\n" +
-                                            " Malware may check the computer or user name to identify whether they are running in a lab environment or virtual machine used for malware analysis.";
-                                    this.present += 5;
+                                this.present += 8;
+                                break;
 
-                                case "GlobalMemoryStatusEx" :
-                                    this.descriptionOrder += " - There is a suspicious command used to obtain information about the amount of memory in the system and the characteristics of the processor.\n" +
-                                            " Malicious agents use these functions to check whether they are running in an environment with limited resources,\n a feature that characterizes virtual machines or analysis environments.";
-                                    this.present += 5;
+                            case "Kernel32.dll":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" attempts to access the operating system.\n");
+                                this.present += 10;
+                                break;
 
-                                case "TerminateProcess" :
-                                    this.descriptionOrder += " - There is a suspicious command crash Processes in your file. that crash unexpectedly may indicate that the attacker is trying to take over them or cause them to perform malicious actions.";
-                                    this.present += 15;
+                            case "C:\\Windows\\System32\\Kernel32.dll":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" tries to access the operating system from Administrator mode. This means there is an attempt by the program to raise access privileges to your system!\n");
+                                this.present += 20;
+                                break;
 
-                                case "GetDC" :
-                                case "GetDeviceCaps" :
-                                case "BitBlt" :
-                                case "GetPixel" :
-                                    this.descriptionOrder += " - There is a suspicious command used to get data about the screen display and its pixels.\n" +
-                                            "Vulnerable users use the screen test to identify if they are running in an analysis environment,\n such as a sandbox, that does not change the screen very often.";
-                                    this.present += 5;
+                            case "VirtualProtect":
+                            case "NtAllocateVirtualMemory":
+                            case "VirtualAlloc":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to allocate memory in the system and to set read, write, and run permissions for the allocated memory.\n Malicious actors may use this type of memory allocation to load malicious code into memory and run it directly from memory (a process known as \"DLL Injection\" or \"Code Injection\").\n");
+                                this.present += 20;
+                                break;
 
-                                case "Sleep" :
-                                case "GetTickCount" :
-                                case "RDTSC" :
-                                case "NtDelayExecution" :
-                                    this.descriptionOrder += " - There is a suspicious command used to delay the running of the damaged.\n" +
-                                            "Victims use these delays to evade detection during sandbox tests, which tend to run for a short time.";
-                                    this.present += 10;
+                            case "GetSystemInfo":
+                            case "GetUserName":
+                            case "GetComputerName":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to collect information about the computer name, user name, and system properties.\n Malware may check the computer or user name to identify whether they are running in a lab environment or virtual machine used for malware analysis.\n");
+                                this.present += 5;
+                                break;
 
-                                case "CPUID" :
-                                case "Rdtsc" :
-                                    this.descriptionOrder += " - There is a suspicious command used to read information about the processor and physical memory.\n" +
-                                            "Malware may use these tests to detect whether they are running on a VM,\n based on CPU and memory characteristics.";
-                                    this.present += 5;
+                            case "GlobalMemoryStatusEx":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to obtain information about the amount of memory in the system and the characteristics of the processor.\n Malicious agents use these functions to check whether they are running in an environment with limited resources, a feature that characterizes virtual machines or analysis environments.\n");
+                                this.present += 5;
+                                break;
 
-                                case "CreateFile" :
-                                case "WriteFile" :
-                                case "ShellExecute" :
-                                case "WinExec" :
-                                    this.descriptionOrder += " - There is a suspicious command used to create new files in the system and activate them.\n" +
-                                            "Malware creates executable files to run additional malicious code or replicate themselves on the system.";
-                                    this.present += 5;
+                            case "TerminateProcess":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" crashes processes in your file. Crashes that occur unexpectedly may indicate that the attacker is trying to take over them or cause them to perform malicious actions.\n");
+                                this.present += 15;
+                                break;
 
-                                case "FILE_ATTRIBUTE_HIDDEN" :
-                                    this.descriptionOrder += " - There is a suspicious command used to create files with hidden property.\n" +
-                                            "Malware uses hidden files to hide their activity from the user and the antivirus.";
-                                    this.present += 15;
+                            case "GetDC":
+                            case "GetDeviceCaps":
+                            case "BitBlt":
+                            case "GetPixel":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to get data about the screen display and its pixels.\n Vulnerable users use the screen test to identify if they are running in an analysis environment, such as a sandbox, that does not change the screen very often.\n");
+                                this.present += 5;
+                                break;
 
-                                case "CreateLink" :
-                                case "IShellLink" :
-                                    this.descriptionOrder += " - There is a suspicious command used to create shortcuts on the desktop or in other locations.\n" +
-                                            "Malware uses shortcuts to launch themselves or redirect users to malicious files.";
-                                    this.present += 5;
+                            case "Sleep":
+                            case "GetTickCount":
+                            case "RDTSC":
+                            case "NtDelayExecution":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to delay the running of the malware.\n Malware uses these delays to evade detection during sandbox tests, which tend to run for a short time.\n");
+                                this.present += 10;
+                                break;
 
-                                case "EnumProcesses" :
-                                case "GetModuleFileName" :
-                                case "QueryFullProcessImageName" :
-                                case "WMI" :
-                                    this.descriptionOrder += " - There is a suspicious command used to collect information about the processes and applications running in the system.\n" +
-                                            "Harmful users may check the list of applications to discover antivirus or other tools that may threaten their activity.";
-                                    this.present += 10;
+                            case "CPUID":
+                            case "Rdtsc":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to read information about the processor and physical memory.\n Malware may use these tests to detect whether they are running on a VM, based on CPU and memory characteristics.\n");
+                                this.present += 5;
+                                break;
 
-                                case "SetWindowsHookEx" :
-                                case "GetAsyncKeyState" :
-                                case "GetKeyState" :
-                                    this.descriptionOrder += " - There is a suspicious command used to track keystrokes.\n" +
-                                            "Hackers use keyboard hooks to steal passwords, credit card information, and other personal information.";
-                                    this.present += 35;
+                            case "CreateFile":
+                            case "WriteFile":
+                            case "ShellExecute":
+                            case "WinExec":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to create new files in the system and activate them.\n Malware creates executable files to run additional malicious code or replicate themselves on the system.\n");
+                                this.present += 5;
+                                break;
 
-                                case "CryptEncrypt" :
-                                case "MoveFile" :
-                                case "CopyFile" :
-                                    this.descriptionOrder += " - There is a suspicious command used to encrypt files or move them to another location.\n" +
-                                            "Ransomware uses these commands to encrypt the victim's files and demand a ransom in exchange for their release.";
-                                    this.present += 90;
+                            case "FILE_ATTRIBUTE_HIDDEN":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to create files with hidden property.\n Malware uses hidden files to hide their activity from the user and the antivirus.\n");
+                                this.present += 15;
+                                break;
 
-                            }
-                            System.out.println("\n there is a suspicious order in your file");
-                            System.out.println(this.descriptionOrder);
+                            case "CreateLink":
+                            case "IShellLink":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to create shortcuts on the desktop or in other locations.\n Malware uses shortcuts to launch themselves or redirect users to malicious files.\n");
+                                this.present += 5;
+                                break;
+
+                            case "EnumProcesses":
+                            case "GetModuleFileName":
+                            case "QueryFullProcessImageName":
+                            case "WMI":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to collect information about the processes and applications running in the system.\n Malicious users may check the list of applications to discover antivirus or other tools that may threaten their activity.\n");
+                                this.present += 10;
+                                break;
+
+                            case "SetWindowsHookEx":
+                            case "GetAsyncKeyState":
+                            case "GetKeyState":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to track keystrokes.\n Hackers use keyboard hooks to steal passwords, credit card information, and other personal information.\n");
+                                this.present += 35;
+                                break;
+
+                            case "CryptEncrypt":
+                            case "MoveFile":
+                            case "CopyFile":
+                                descriptionBuilder.append(" - The command: ").append(command).append(" is used to encrypt files or move them to another location.\n Ransomware uses these commands to encrypt the victim's files and demand a ransom in exchange for their release.\n");
+                                this.present += 90;
+                                break;
                         }
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-                }
-            this.isSuspiciousOrders = thereIsSuspiciousOrder;
-            return thereIsSuspiciousOrder;
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        this.descriptionOrder = descriptionBuilder.toString();
+        this.isSuspiciousOrders = thereIsSuspiciousOrder;
+        return thereIsSuspiciousOrder;
+    }
 
 
-            // הערכה האם הקובץ מוצפן
+    // הערכה האם הקובץ מוצפן
     public void isTheFileEncoded() {
         int specialSymbolCounter = 0;
         boolean isEncoded = false;
